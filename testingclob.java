@@ -1,12 +1,24 @@
-public String clobToString(Clob clob) throws Exception {
-    if (clob == null) return null;
+List<String> sqlValues = Arrays.stream(sqlConcatValue.split(";"))
+            .map(String::trim) // keep "ID - Name"
+            .toList();
 
-    StringBuilder sb = new StringBuilder();
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(clob.getCharacterStream()))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-            sb.append(line);
-        }
-    }
-    return sb.toString();
-}
+    // JSON side
+    List<String> jsonValues = nestedJsonList.stream()
+            .map(nestedItem -> {
+                String idKey = nestedItem.keySet().stream()
+                        .filter(k -> k.endsWith("_ID"))
+                        .findFirst()
+                        .orElse(null);
+                String nameKey = nestedItem.keySet().stream()
+                        .filter(k -> k.endsWith("_NAME"))
+                        .findFirst()
+                        .orElse(null);
+
+                Object id = idKey != null ? nestedItem.get(idKey) : null;
+                Object name = nameKey != null ? nestedItem.get(nameKey) : null;
+
+                return (id != null && name != null)
+                        ? id.toString().trim() + " - " + name.toString().trim()
+                        : "";
+            })
+            .toList();
